@@ -1,0 +1,1312 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Antigravity Sitemap Generator – Advanced XML Crawler</title>
+    <meta
+      name="description"
+      content="Advanced XML sitemap generator with Shopify support, 404 exclusion, URL-type filters, robots.txt & more. Runs 100% locally."
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ["Inter", "sans-serif"] },
+            keyframes: {
+              fadeIn: {
+                "0%": { opacity: "0", transform: "translateY(8px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
+              },
+              slideUp: {
+                "0%": { opacity: "0", transform: "translateY(18px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
+              },
+            },
+            animation: {
+              "fade-in": "fadeIn .3s ease-out",
+              "slide-up": "slideUp .4s ease-out",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        background: #060914;
+        background-image:
+          radial-gradient(
+            ellipse 80% 60% at 15% 30%,
+            rgba(37, 99, 235, 0.13) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse 60% 50% at 85% 70%,
+            rgba(124, 58, 237, 0.1) 0%,
+            transparent 60%
+          );
+        font-family: "Inter", sans-serif;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.032);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+      }
+
+      .glass-lite {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .gradient-text {
+        background: linear-gradient(
+          135deg,
+          #60a5fa 0%,
+          #a78bfa 55%,
+          #f472b6 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      /* Inputs */
+      .inp {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .inp:focus {
+        outline: none;
+        border-color: rgba(96, 165, 250, 0.6);
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14);
+      }
+
+      /* Toggle switch */
+      .toggle-wrap input[type="checkbox"] {
+        display: none;
+      }
+
+      .toggle-wrap .track {
+        width: 40px;
+        height: 22px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 99px;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.25s;
+      }
+
+      .toggle-wrap input:checked + .track {
+        background: #2563eb;
+      }
+
+      .toggle-wrap .track::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform 0.25s;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .toggle-wrap input:checked + .track::after {
+        transform: translateX(18px);
+      }
+
+      /* Tab pills */
+      .tab-btn {
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+
+      .tab-btn.active {
+        background: rgba(96, 165, 250, 0.18);
+        color: #60a5fa;
+      }
+
+      /* CTA */
+      .btn-cta {
+        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-cta::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.12),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .btn-cta:hover::after {
+        left: 150%;
+      }
+
+      .btn-cta:hover {
+        box-shadow: 0 6px 28px rgba(124, 58, 237, 0.5);
+        transform: translateY(-1px);
+      }
+
+      .btn-cta:active {
+        transform: scale(0.98);
+      }
+
+      .btn-cta:disabled {
+        opacity: 0.55;
+        pointer-events: none;
+      }
+
+      /* Download */
+      .btn-dl {
+        background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+        transition: all 0.25s;
+      }
+
+      .btn-dl:hover {
+        box-shadow: 0 6px 24px rgba(5, 150, 105, 0.45);
+        transform: translateY(-1px);
+      }
+
+      /* Progress bar */
+      .prog-track {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      #progressFill {
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+        background-size: 300% 100%;
+        animation: shimmer 2.5s linear infinite;
+        transition: width 0.5s ease;
+      }
+
+      @keyframes shimmer {
+        0% {
+          background-position: 100% 0;
+        }
+
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      /* Dot */
+      .dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #22c55e;
+      }
+
+      @keyframes dotP {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+
+        50% {
+          transform: scale(1.5);
+          opacity: 0.6;
+        }
+      }
+
+      .dot {
+        animation: dotP 1.4s ease-in-out infinite;
+      }
+
+      /* Log */
+      #logBox {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+      }
+
+      #logBox::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      #logBox::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 4px;
+      }
+
+      /* Checkbox pill */
+      .type-pill label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        padding: 6px 12px;
+        border-radius: 99px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 12px;
+        color: #9ca3af;
+        transition: all 0.2s;
+        user-select: none;
+      }
+
+      .type-pill input[type="checkbox"] {
+        display: none;
+      }
+
+      .type-pill input:checked + label {
+        background: rgba(96, 165, 250, 0.15);
+        border-color: rgba(96, 165, 250, 0.4);
+        color: #93c5fd;
+      }
+
+      /* Spin */
+      .spin {
+        animation: spin 0.9s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Platform badge */
+      .plat-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 99px;
+      }
+
+      .plat-generic {
+        background: rgba(100, 116, 139, 0.2);
+        color: #94a3b8;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+      }
+
+      .plat-shopify {
+        background: rgba(149, 196, 77, 0.15);
+        color: #95c44d;
+        border: 1px solid rgba(149, 196, 77, 0.35);
+      }
+
+      .plat-wordpress {
+        background: rgba(33, 145, 214, 0.15);
+        color: #21a1d6;
+        border: 1px solid rgba(33, 145, 214, 0.35);
+      }
+    </style>
+  </head>
+
+  <body
+    class="text-white min-h-screen flex flex-col items-center justify-center py-12 px-4"
+  >
+    <!-- ══ MAIN CARD ══════════════════════════════════════════════════════════════ -->
+    <div
+      class="glass rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-fade-in"
+    >
+      <!-- Header -->
+      <div class="px-8 pt-10 pb-6 text-center border-b border-white/5">
+        <div
+          class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600 shadow-lg mb-4"
+        >
+          <svg
+            class="w-6 h-6 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.5"
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            />
+          </svg>
+        </div>
+        <h1 class="text-4xl font-extrabold gradient-text mb-1 tracking-tight">
+          Advanced Sitemap Crawler
+        </h1>
+        <p class="text-gray-500 text-sm">
+          Advanced async sitemap generator · Shopify · WordPress · Any site ·
+          Runs locally
+        </p>
+      </div>
+
+      <!-- ── FORM SECTION ──────────────────────────────────────────────────────── -->
+      <div id="formSection" class="px-8 py-8 space-y-6">
+        <form id="crawlForm" novalidate>
+          <!-- URL -->
+          <div class="mb-5">
+            <label
+              for="url"
+              class="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2"
+              >Target Website URL</label
+            >
+            <div class="relative">
+              <span
+                class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-600"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"
+                  />
+                </svg>
+              </span>
+              <input
+                id="url"
+                name="url"
+                type="url"
+                placeholder="https://example.com"
+                required
+                autocomplete="off"
+                class="inp w-full pl-11 pr-4 py-3 rounded-xl text-gray-100 placeholder-gray-600 text-sm"
+              />
+            </div>
+          </div>
+
+          <!-- Max URLs + Platform -->
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div>
+              <label
+                class="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2"
+                >Max URLs</label
+              >
+              <input
+                id="max_urls"
+                name="max_urls"
+                type="number"
+                value="5000"
+                min="10"
+                max="50000"
+                class="inp w-full px-4 py-3 rounded-xl text-gray-100 text-sm"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2"
+                >Platform</label
+              >
+              <select
+                id="platform"
+                name="platform"
+                class="inp w-full px-4 py-3 rounded-xl text-gray-100 text-sm cursor-pointer [&>option]:bg-gray-900 [&>option]:text-white"
+              >
+                <option value="auto">🔍 Auto-detect</option>
+                <option value="shopify">🛍️ Shopify</option>
+                <option value="wordpress">🔷 WordPress</option>
+                <option value="generic">🌐 Generic</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- ── SETTINGS PANEL ──────────────────────────────────────────────── -->
+          <div class="glass-lite rounded-2xl overflow-hidden mb-6">
+            <!-- Collapsible toggle -->
+            <button
+              type="button"
+              id="settingsToggle"
+              class="w-full flex items-center justify-between px-5 py-3.5 text-sm font-medium text-gray-300 hover:text-white transition-colors"
+            >
+              <span class="flex items-center gap-2">
+                <svg
+                  class="w-4 h-4 text-blue-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                  />
+                </svg>
+                Advanced Settings
+              </span>
+              <svg
+                id="settingsChevron"
+                class="w-4 h-4 text-gray-500 transition-transform duration-200"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+
+            <div id="settingsBody" class="hidden border-t border-white/5">
+              <!-- Tab navigation -->
+              <div class="flex gap-1 p-3 border-b border-white/5">
+                <button
+                  type="button"
+                  data-tab="filters"
+                  class="tab-btn active px-4 py-1.5 rounded-lg text-xs font-semibold text-gray-400"
+                >
+                  🔧 Filters
+                </button>
+                <button
+                  type="button"
+                  data-tab="types"
+                  class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-gray-400"
+                >
+                  📂 Content Types
+                </button>
+                <button
+                  type="button"
+                  data-tab="patterns"
+                  class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-gray-400"
+                >
+                  🔍 URL Patterns
+                </button>
+                <button
+                  type="button"
+                  data-tab="advanced"
+                  class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-gray-400"
+                >
+                  ⚙️ Advanced
+                </button>
+              </div>
+
+              <!-- ── TAB: Filters ────────────────────────────────────────────── -->
+              <div id="tab-filters" class="tab-panel p-5 space-y-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-gray-200">
+                      Exclude 404 &amp; error pages
+                    </p>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                      Only include URLs returning HTTP 200
+                    </p>
+                  </div>
+                  <label class="toggle-wrap">
+                    <input
+                      type="checkbox"
+                      id="exclude_404"
+                      name="exclude_404"
+                      checked
+                    />
+                    <div class="track"></div>
+                  </label>
+                </div>
+
+                <div class="border-t border-white/5"></div>
+
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-gray-200">
+                      Include PDF files
+                    </p>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                      Add .pdf URLs to the sitemap
+                    </p>
+                  </div>
+                  <label class="toggle-wrap">
+                    <input
+                      type="checkbox"
+                      id="include_pdfs"
+                      name="include_pdfs"
+                    />
+                    <div class="track"></div>
+                  </label>
+                </div>
+
+                <div class="border-t border-white/5"></div>
+
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-gray-200">
+                      Respect robots.txt
+                    </p>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                      Skip paths disallowed by the site's robots.txt
+                    </p>
+                  </div>
+                  <label class="toggle-wrap">
+                    <input
+                      type="checkbox"
+                      id="respect_robots"
+                      name="respect_robots"
+                      checked
+                    />
+                    <div class="track"></div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- ── TAB: Content Types ──────────────────────────────────────── -->
+              <div id="tab-types" class="tab-panel hidden p-5">
+                <p class="text-xs text-gray-500 mb-4">
+                  Only URLs matching the selected types will be included in the
+                  sitemap.
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <div class="type-pill">
+                    <input
+                      type="checkbox"
+                      id="type_page"
+                      value="page"
+                      checked
+                    />
+                    <label for="type_page">📄 Pages</label>
+                  </div>
+                  <div class="type-pill">
+                    <input
+                      type="checkbox"
+                      id="type_product"
+                      value="product"
+                      checked
+                    />
+                    <label for="type_product">🛒 Products</label>
+                  </div>
+                  <div class="type-pill">
+                    <input
+                      type="checkbox"
+                      id="type_collection"
+                      value="collection"
+                      checked
+                    />
+                    <label for="type_collection">📦 Collections</label>
+                  </div>
+                  <div class="type-pill">
+                    <input
+                      type="checkbox"
+                      id="type_blog"
+                      value="blog"
+                      checked
+                    />
+                    <label for="type_blog">📝 Blogs &amp; Articles</label>
+                  </div>
+                  <div class="type-pill">
+                    <input type="checkbox" id="type_tag" value="tag" checked />
+                    <label for="type_tag">🏷️ Tags</label>
+                  </div>
+                </div>
+                <p class="text-xs text-gray-600 mt-4">
+                  💡
+                  <strong class="text-gray-500">Shopify fast-path:</strong> When
+                  a Shopify store is detected, each type maps directly to its
+                  sitemap (products, collections, pages, blogs). Much faster
+                  than HTML crawling.
+                </p>
+              </div>
+
+              <!-- ── TAB: URL Patterns ───────────────────────────────────────── -->
+              <div id="tab-patterns" class="tab-panel hidden p-5 space-y-4">
+                <div>
+                  <label
+                    class="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2"
+                  >
+                    Exclude URL patterns
+                    <span class="normal-case font-normal text-gray-600"
+                      >(one per line)</span
+                    >
+                  </label>
+                  <textarea
+                    id="exclude_patterns"
+                    name="exclude_patterns"
+                    rows="4"
+                    placeholder="/cart&#10;/checkout&#10;/account&#10;/admin&#10;?ref="
+                    class="inp w-full px-4 py-3 rounded-xl text-gray-300 placeholder-gray-600 text-xs font-mono resize-none"
+                  ></textarea>
+                  <p class="text-xs text-gray-600 mt-1">
+                    Any URL containing these strings will be skipped.
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2"
+                  >
+                    Include only patterns
+                    <span class="normal-case font-normal text-gray-600"
+                      >(one per line, leave blank for all)</span
+                    >
+                  </label>
+                  <textarea
+                    id="include_only_patterns"
+                    name="include_only_patterns"
+                    rows="3"
+                    placeholder="/products/&#10;/collections/"
+                    class="inp w-full px-4 py-3 rounded-xl text-gray-300 placeholder-gray-600 text-xs font-mono resize-none"
+                  ></textarea>
+                  <p class="text-xs text-gray-600 mt-1">
+                    If filled, only matching URLs will be crawled.
+                  </p>
+                </div>
+              </div>
+
+              <!-- ── TAB: Advanced ─────────────────────────────────────────────── -->
+              <div id="tab-advanced" class="tab-panel hidden p-5 space-y-4">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-400 mb-1"
+                    >Maximum crawl depth</label
+                  >
+                  <select
+                    id="max_depth"
+                    name="max_depth"
+                    class="inp w-full px-4 py-3 rounded-xl text-gray-200 text-sm cursor-pointer [&>option]:bg-gray-900 [&>option]:text-white"
+                  >
+                    <option value="0" selected>All URLs (Default)</option>
+                    <option value="1">1 level (homepage + direct links)</option>
+                    <option value="2">2 levels</option>
+                    <option value="3">3 levels</option>
+                    <option value="4">4 levels</option>
+                    <option value="5">5 levels (maximum)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-gray-400 mb-1"
+                    >Last modified date</label
+                  >
+                  <select
+                    id="last_modified"
+                    name="last_modified"
+                    class="inp w-full px-4 py-3 rounded-xl text-gray-200 text-sm cursor-pointer [&>option]:bg-gray-900 [&>option]:text-white"
+                  >
+                    <option value="today" selected>Today's date</option>
+                    <option value="none">Don't include</option>
+                  </select>
+                  <p class="text-xs text-gray-600 mt-1">
+                    Helps search engines understand when content was last
+                    updated
+                  </p>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-gray-400 mb-1"
+                    >Change frequency</label
+                  >
+                  <select
+                    id="changefreq"
+                    name="changefreq"
+                    class="inp w-full px-4 py-3 rounded-xl text-gray-200 text-sm cursor-pointer [&>option]:bg-gray-900 [&>option]:text-white"
+                  >
+                    <option value="never">Never</option>
+                    <option value="yearly">Yearly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="daily">Daily</option>
+                    <option value="hourly">Hourly</option>
+                    <option value="always">Always</option>
+                    <option value="none" selected>Don't include</option>
+                  </select>
+                  <p class="text-xs text-gray-600 mt-1">
+                    Hints to search engines about how often the page might
+                    change
+                  </p>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-gray-400 mb-1"
+                    >Priority</label
+                  >
+                  <select
+                    disabled
+                    class="inp w-full px-4 py-3 rounded-xl text-gray-400 text-sm bg-gray-800/50 cursor-not-allowed"
+                  >
+                    <option selected>Auto-calculate based on depth</option>
+                  </select>
+                  <p class="text-xs text-gray-600 mt-1">
+                    Relative importance of pages within your site (0.0 to 1.0)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button
+            type="submit"
+            id="submitBtn"
+            class="btn-cta w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2.5 select-none"
+          >
+            <svg
+              id="btnIcon"
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              />
+            </svg>
+            <span id="btnText">Start Crawl</span>
+            <svg
+              id="btnSpinner"
+              class="w-4 h-4 spin hidden"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              />
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              />
+            </svg>
+          </button>
+        </form>
+      </div>
+
+      <!-- ── LIVE DASHBOARD ────────────────────────────────────────────────────── -->
+      <div id="dashboard" class="hidden px-8 pb-8 space-y-5 animate-slide-up">
+        <!-- Status row -->
+        <div class="flex items-center gap-3 flex-wrap">
+          <span id="statusDot" class="dot"></span>
+          <span id="statusLabel" class="text-sm font-medium text-gray-300"
+            >Initialising...</span
+          >
+          <span
+            id="platformBadge"
+            class="plat-badge plat-generic hidden"
+          ></span>
+          <span class="ml-auto text-xs text-gray-700" id="jobIdLabel"></span>
+        </div>
+
+        <!-- Progress bar -->
+        <div>
+          <div class="prog-track h-2 rounded-full overflow-hidden">
+            <div
+              id="progressFill"
+              class="h-full rounded-full"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="flex justify-between mt-1.5 text-xs text-gray-600">
+            <span id="progressPct">0%</span>
+            <span>of <span id="maxLabel">—</span> max URLs</span>
+          </div>
+        </div>
+
+        <!-- Main stats -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="glass-lite rounded-2xl p-4 text-center">
+            <p
+              id="statVisited"
+              class="text-3xl font-bold text-blue-400 tabular-nums"
+            >
+              0
+            </p>
+            <p class="text-gray-500 text-xs mt-1">✅ Crawled</p>
+          </div>
+          <div class="glass-lite rounded-2xl p-4 text-center">
+            <p
+              id="statQueue"
+              class="text-3xl font-bold text-violet-400 tabular-nums"
+            >
+              0
+            </p>
+            <p class="text-gray-500 text-xs mt-1">⏳ In Queue</p>
+          </div>
+          <div class="glass-lite rounded-2xl p-4 text-center">
+            <p
+              id="statSpeed"
+              class="text-3xl font-bold text-amber-400 tabular-nums"
+            >
+              0
+            </p>
+            <p class="text-gray-500 text-xs mt-1">⚡ URLs/sec</p>
+          </div>
+          <div class="glass-lite rounded-2xl p-4 text-center">
+            <p
+              id="statElapsed"
+              class="text-3xl font-bold text-pink-400 tabular-nums"
+            >
+              0s
+            </p>
+            <p class="text-gray-500 text-xs mt-1">🕐 Elapsed</p>
+          </div>
+        </div>
+
+        <!-- URL type breakdown -->
+        <div
+          id="typeBreakdown"
+          class="glass-lite rounded-2xl px-5 py-4 hidden animate-fade-in"
+        >
+          <p
+            class="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3"
+          >
+            URL Type Breakdown
+          </p>
+          <div class="flex flex-wrap gap-3" id="typePills"></div>
+        </div>
+
+        <!-- Activity log -->
+        <div>
+          <p
+            class="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2"
+          >
+            Activity Log
+          </p>
+          <div
+            id="logBox"
+            class="glass-lite rounded-xl p-3 h-36 overflow-y-auto font-mono text-xs text-gray-400 space-y-1"
+          ></div>
+        </div>
+
+        <!-- Done actions -->
+        <div id="doneActions" class="hidden space-y-3 animate-fade-in">
+          <button
+            id="downloadBtn"
+            class="btn-dl w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2.5 text-white"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
+            </svg>
+            Download sitemap.xml
+          </button>
+          <button
+            id="resetBtn"
+            class="w-full py-3 rounded-xl border border-white/10 text-gray-400 hover:text-white hover:border-white/20 text-sm font-medium transition-all"
+          >
+            ↩ Crawl another site
+          </button>
+        </div>
+
+        <!-- Error -->
+        <div
+          id="errorBanner"
+          class="hidden rounded-xl px-4 py-3 bg-red-500/10 border border-red-500/25 text-red-300 text-sm"
+        ></div>
+      </div>
+      <!-- /dashboard -->
+    </div>
+    <!-- /card -->
+
+    <p class="mt-8 text-gray-500 text-sm font-medium">
+      Made with ❤️ by Umair Maqbool
+    </p>
+
+    <script>
+      // ── Settings panel toggle ────────────────────────────────────────────────────
+      const settingsToggle = document.getElementById("settingsToggle");
+      const settingsBody = document.getElementById("settingsBody");
+      const settingsChevron = document.getElementById("settingsChevron");
+      settingsToggle.addEventListener("click", () => {
+        const open = !settingsBody.classList.contains("hidden");
+        settingsBody.classList.toggle("hidden", open);
+        settingsChevron.style.transform = open ? "" : "rotate(180deg)";
+      });
+
+      // ── Tab switching ────────────────────────────────────────────────────────────
+      document.querySelectorAll("[data-tab]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document
+            .querySelectorAll("[data-tab]")
+            .forEach((b) => b.classList.remove("active"));
+          document
+            .querySelectorAll(".tab-panel")
+            .forEach((p) => p.classList.add("hidden"));
+          btn.classList.add("active");
+          document
+            .getElementById("tab-" + btn.dataset.tab)
+            .classList.remove("hidden");
+        });
+      });
+
+      // ── DOM refs ─────────────────────────────────────────────────────────────────
+      const form = document.getElementById("crawlForm");
+      const formSection = document.getElementById("formSection");
+      const dashboard = document.getElementById("dashboard");
+      const submitBtn = document.getElementById("submitBtn");
+      const btnText = document.getElementById("btnText");
+      const btnIcon = document.getElementById("btnIcon");
+      const btnSpinner = document.getElementById("btnSpinner");
+
+      const statusDot = document.getElementById("statusDot");
+      const statusLabel = document.getElementById("statusLabel");
+      const platformBadge = document.getElementById("platformBadge");
+      const jobIdLabel = document.getElementById("jobIdLabel");
+
+      const progressFill = document.getElementById("progressFill");
+      const progressPct = document.getElementById("progressPct");
+      const maxLabel = document.getElementById("maxLabel");
+
+      const statVisited = document.getElementById("statVisited");
+      const statQueue = document.getElementById("statQueue");
+      const statSpeed = document.getElementById("statSpeed");
+      const statElapsed = document.getElementById("statElapsed");
+
+      const typeBreakdown = document.getElementById("typeBreakdown");
+      const typePills = document.getElementById("typePills");
+
+      const logBox = document.getElementById("logBox");
+      const doneActions = document.getElementById("doneActions");
+      const downloadBtn = document.getElementById("downloadBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const errorBanner = document.getElementById("errorBanner");
+
+      // ── State ────────────────────────────────────────────────────────────────────
+      let jobId = null,
+        pollTimer = null,
+        prevVisited = 0,
+        prevElapsed = 0;
+
+      const TYPE_CONFIG = {
+        page: {
+          label: "📄 Pages",
+          color: "text-blue-400",
+          bg: "bg-blue-400/10 border-blue-400/25",
+        },
+        product: {
+          label: "🛒 Products",
+          color: "text-emerald-400",
+          bg: "bg-emerald-400/10 border-emerald-400/25",
+        },
+        collection: {
+          label: "📦 Collections",
+          color: "text-violet-400",
+          bg: "bg-violet-400/10 border-violet-400/25",
+        },
+        blog: {
+          label: "📝 Blogs",
+          color: "text-amber-400",
+          bg: "bg-amber-400/10 border-amber-400/25",
+        },
+        tag: {
+          label: "🏷️ Tags",
+          color: "text-pink-400",
+          bg: "bg-pink-400/10 border-pink-400/25",
+        },
+      };
+
+      // ── Helpers ───────────────────────────────────────────────────────────────────
+      function fmt(n) {
+        return Number(n).toLocaleString();
+      }
+      function fmtTime(s) {
+        s = Math.round(s);
+        return s < 60 ? s + "s" : Math.floor(s / 60) + "m " + (s % 60) + "s";
+      }
+      function log(msg) {
+        const ts = new Date().toLocaleTimeString("en", { hour12: false });
+        const d = document.createElement("div");
+        d.className = "animate-fade-in";
+        d.textContent = `[${ts}] ${msg}`;
+        logBox.appendChild(d);
+        logBox.scrollTop = logBox.scrollHeight;
+      }
+      function setDot(color) {
+        statusDot.style.background = color;
+      }
+      function showPlatformBadge(plat) {
+        const cfg = {
+          shopify: { cls: "plat-shopify", icon: "🛍️", label: "Shopify" },
+          wordpress: { cls: "plat-wordpress", icon: "🔷", label: "WordPress" },
+          generic: { cls: "plat-generic", icon: "🌐", label: "Generic" },
+        };
+        const c = cfg[plat] || cfg.generic;
+        platformBadge.className = `plat-badge ${c.cls}`;
+        platformBadge.textContent = `${c.icon} ${c.label}`;
+        platformBadge.classList.remove("hidden");
+      }
+      function updateTypePills(counts) {
+        let hasAny = Object.values(counts).some((v) => v > 0);
+        if (!hasAny) return;
+        typeBreakdown.classList.remove("hidden");
+        typePills.innerHTML = "";
+        for (const [key, val] of Object.entries(counts)) {
+          if (!val) continue;
+          const cfg = TYPE_CONFIG[key] || {};
+          const pill = document.createElement("div");
+          pill.className = `flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium ${cfg.bg || "bg-white/5 border-white/10"}`;
+          pill.innerHTML = `<span class="${cfg.color || "text-gray-300"} font-bold tabular-nums">${fmt(val)}</span><span class="text-gray-500">${cfg.label || key}</span>`;
+          typePills.appendChild(pill);
+        }
+      }
+
+      function resetUI() {
+        clearInterval(pollTimer);
+        pollTimer = null;
+        jobId = null;
+        prevVisited = 0;
+        prevElapsed = 0;
+        dashboard.classList.add("hidden");
+        doneActions.classList.add("hidden");
+        errorBanner.classList.add("hidden");
+        typeBreakdown.classList.add("hidden");
+        typePills.innerHTML = "";
+        logBox.innerHTML = "";
+        progressFill.style.width = "0%";
+        progressPct.textContent = "0%";
+        [statVisited, statQueue, statSpeed].forEach(
+          (el) => (el.textContent = "0"),
+        );
+        statElapsed.textContent = "0s";
+        platformBadge.classList.add("hidden");
+        formSection.classList.remove("hidden");
+        submitBtn.disabled = false;
+        btnIcon.classList.remove("hidden");
+        btnSpinner.classList.add("hidden");
+        btnText.textContent = "Start Crawl";
+      }
+
+      // ── Poll ─────────────────────────────────────────────────────────────────────
+      async function poll() {
+        if (!jobId) return;
+        try {
+          const r = await fetch(`/progress/${jobId}`);
+          const d = await r.json();
+          const {
+            status,
+            platform_detected,
+            visited,
+            queue,
+            elapsed_s,
+            max_urls,
+            type_counts,
+            error,
+          } = d;
+
+          statVisited.textContent = fmt(visited);
+          statQueue.textContent = fmt(queue);
+          statElapsed.textContent = fmtTime(elapsed_s);
+          maxLabel.textContent = fmt(max_urls);
+
+          // Speed
+          const dV = visited - prevVisited;
+          const dT = Math.max(elapsed_s - prevElapsed, 0.5);
+          statSpeed.textContent = Math.round(dV / dT).toLocaleString();
+          prevVisited = visited;
+          prevElapsed = elapsed_s;
+
+          // Progress bar
+          const pct =
+            max_urls > 0
+              ? Math.min(100, Math.round((visited / max_urls) * 100))
+              : 0;
+          progressFill.style.width = pct + "%";
+          progressPct.textContent = pct + "%";
+
+          // Platform badge
+          if (platform_detected && platform_detected !== "generic")
+            showPlatformBadge(platform_detected);
+          else if (platform_detected === "generic")
+            showPlatformBadge("generic");
+
+          // Type breakdown
+          if (type_counts) updateTypePills(type_counts);
+
+          if (status === "running" || status === "pending") {
+            setDot("#22c55e");
+            statusLabel.textContent =
+              status === "pending"
+                ? "Launching engine..."
+                : `Crawling — ${fmt(visited)} pages done, ${fmt(queue)} queued`;
+            if (visited > 0 && visited % 100 === 0)
+              log(
+                `✅ ${fmt(visited)} URLs crawled | ${fmt(queue)} in queue | ${fmtTime(elapsed_s)}`,
+              );
+          } else if (status === "done") {
+            clearInterval(pollTimer);
+            progressFill.style.width = "100%";
+            progressPct.textContent = "100%";
+            statVisited.textContent = fmt(visited);
+            statQueue.textContent = "0";
+            statusDot.style.animation = "none";
+            setDot("#3b82f6");
+            statusLabel.textContent = `Done! ${fmt(visited)} URLs · ${fmtTime(elapsed_s)}`;
+            log(`🎉 Complete! ${fmt(visited)} URLs in ${fmtTime(elapsed_s)}`);
+            // Final type dump
+            if (type_counts) {
+              const parts = Object.entries(type_counts)
+                .filter(([, v]) => v > 0)
+                .map(([k, v]) => `${TYPE_CONFIG[k]?.label || k}: ${fmt(v)}`)
+                .join(" · ");
+              if (parts) log(`📊 ${parts}`);
+            }
+            doneActions.classList.remove("hidden");
+          } else if (status === "failed") {
+            clearInterval(pollTimer);
+            statusDot.style.animation = "none";
+            setDot("#ef4444");
+            statusLabel.textContent = "Crawl failed.";
+            log(`❌ Error: ${error}`);
+            errorBanner.textContent = `❌ ${error || "Unknown error. Check the URL and try again."}`;
+            errorBanner.classList.remove("hidden");
+          }
+        } catch (e) {
+          log(`⚠️ Connection lost: ${e.message}`);
+        }
+      }
+
+      // ── Form submit ───────────────────────────────────────────────────────────────
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const url = document.getElementById("url").value.trim();
+        const maxUrls =
+          parseInt(document.getElementById("max_urls").value, 10) || 5000;
+        const platform = document.getElementById("platform").value;
+        if (!url) return;
+
+        // Gather content-type checkboxes
+        const urlTypes =
+          Array.from(
+            document.querySelectorAll(
+              ".type-pill input[type=checkbox]:checked",
+            ),
+          )
+            .map((el) => el.value)
+            .join(",") || "page,product,collection,blog,tag";
+
+        submitBtn.disabled = true;
+        btnIcon.classList.add("hidden");
+        btnSpinner.classList.remove("hidden");
+        btnText.textContent = "Starting...";
+
+        try {
+          const fd = new FormData();
+          fd.append("url", url);
+          fd.append("max_urls", maxUrls);
+          fd.append("platform", platform);
+          fd.append(
+            "exclude_404",
+            document.getElementById("exclude_404").checked ? "true" : "false",
+          );
+          fd.append(
+            "include_pdfs",
+            document.getElementById("include_pdfs").checked ? "true" : "false",
+          );
+          fd.append(
+            "respect_robots",
+            document.getElementById("respect_robots").checked
+              ? "true"
+              : "false",
+          );
+          fd.append(
+            "exclude_patterns",
+            document.getElementById("exclude_patterns").value,
+          );
+          fd.append(
+            "include_only_patterns",
+            document.getElementById("include_only_patterns").value,
+          );
+          fd.append("url_types", urlTypes);
+          fd.append("max_depth", document.getElementById("max_depth").value);
+          fd.append(
+            "last_modified",
+            document.getElementById("last_modified").value,
+          );
+          fd.append("changefreq", document.getElementById("changefreq").value);
+
+          const resp = await fetch("/start-crawl", {
+            method: "POST",
+            body: fd,
+          });
+          if (!resp.ok) {
+            const data = await resp.json().catch(() => ({}));
+            throw new Error(data.detail || `HTTP ${resp.status}`);
+          }
+          const { job_id } = await resp.json();
+          jobId = job_id;
+
+          formSection.classList.add("hidden");
+          dashboard.classList.remove("hidden");
+          jobIdLabel.textContent = `Job ${job_id.slice(0, 8)}…`;
+          maxLabel.textContent = fmt(maxUrls);
+          log(`🚀 Crawl started → ${url}`);
+          log(
+            `   Max URLs: ${fmt(maxUrls)}  ·  Platform: ${platform}  ·  Types: ${urlTypes}`,
+          );
+
+          prevVisited = 0;
+          prevElapsed = 0;
+          pollTimer = setInterval(poll, 1000);
+          poll();
+        } catch (err) {
+          resetUI();
+          alert("Failed to start crawl: " + err.message);
+        }
+      });
+
+      // ── Download ──────────────────────────────────────────────────────────────────
+      downloadBtn.addEventListener("click", async () => {
+        if (!jobId) return;
+        try {
+          const resp = await fetch(`/download/${jobId}`);
+          if (!resp.ok) throw new Error("Download failed");
+          const blob = await resp.blob();
+          const a = Object.assign(document.createElement("a"), {
+            href: URL.createObjectURL(blob),
+            download: "sitemap.xml",
+          });
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(a.href);
+          log("📥 sitemap.xml downloaded!");
+          downloadBtn.textContent = "✔ Downloaded!";
+          setTimeout(() => {
+            downloadBtn.innerHTML = "⬇ Download sitemap.xml";
+          }, 3000);
+        } catch (e) {
+          alert("Download error: " + e.message);
+        }
+      });
+
+      resetBtn.addEventListener("click", resetUI);
+    </script>
+  </body>
+</html>
