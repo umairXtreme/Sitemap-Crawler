@@ -1,32 +1,82 @@
 # Advanced Sitemap Crawler
 
-A fast local sitemap generator built with FastAPI, asyncio, and BeautifulSoup.
+<p align="center">
+	Fast async sitemap generation with live progress, platform auto-detection, and advanced crawl controls.
+</p>
 
-This tool crawls websites and generates clean XML sitemap output with support for Shopify detection, WordPress detection, smart URL filtering, and live crawl progress.
+<p align="center">
+	<img src="https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+	<img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+	<img src="https://img.shields.io/badge/Status-Production_Ready-2563EB?style=for-the-badge" alt="Status" />
+	<img src="https://img.shields.io/badge/License-MIT-16A34A?style=for-the-badge" alt="MIT License" />
+</p>
 
-## Highlights
+<p align="center">
+	<img src="images/main_ui.png" alt="Advanced Sitemap Crawler main UI" width="900" />
+</p>
 
-- Async crawler for high-speed URL discovery
-- Automatic platform detection: Shopify, WordPress, generic sites
-- Shopify fast-path using native `sitemap.xml` indexes
-- Live crawl status via polling endpoint
-- Download sitemap as XML when crawl is complete
-- Optional `robots.txt` support
-- Optional exclusion of non-200 pages
-- URL type filters: page, product, collection, blog, tag
-- Include-only and exclude patterns
-- Configurable crawl depth
-- PDF inclusion toggle
-- Beautiful local web UI (no cloud dependency)
+## Why This Project
+
+Advanced Sitemap Crawler helps you generate clean XML sitemaps quickly from a beautiful local interface. It is built for developers, SEO professionals, and ecommerce operators who need practical crawl control without complex setup.
+
+## Key Features
+
+- High-performance async crawling with `aiohttp`
+- Live crawl tracking with progress bar, counters, and activity log
+- Automatic platform detection: Shopify, WordPress, Generic
+- Shopify sitemap fast-path for large stores
+- URL type filtering: Pages, Products, Collections, Blogs, Tags
+- Advanced filtering: exclude 404s, include PDFs, respect `robots.txt`
+- Pattern rules: exclude URL patterns and include-only patterns
+- Advanced sitemap options: depth, lastmod, changefreq, priority strategy
+- One-click sitemap XML download when crawl completes
+
+## UI Showcase
+
+The screenshots below were used to structure this README around the actual product experience.
+
+### 1) Main Interface
+
+<p>
+	<img src="images/main_ui.png" alt="Main interface with URL, max URLs, platform picker, and start button" width="900" />
+</p>
+
+### 2) Advanced Settings Tabs
+
+<p>
+	<img src="images/advanced_filters.png" alt="Filters tab with exclude 404, include PDFs, respect robots options" width="900" />
+</p>
+
+<p>
+	<img src="images/content_types.png" alt="Content Types tab with selectable URL type pills" width="900" />
+</p>
+
+<p>
+	<img src="images/url_patterns.png" alt="URL Patterns tab with exclude and include-only text areas" width="900" />
+</p>
+
+<p>
+	<img src="images/depth_priorities.png" alt="Advanced tab with depth, lastmod, changefreq, and priority settings" width="900" />
+</p>
+
+### 3) Platform Selection
+
+<p>
+	<img src="images/platform_detection_modes.png" alt="Platform dropdown with Auto-detect, Shopify, WordPress, Generic" width="900" />
+</p>
+
+### 4) Crawl Complete State
+
+<p>
+	<img src="images/sitemap_generated.png" alt="Completed crawl with metrics and download sitemap button" width="900" />
+</p>
 
 ## Tech Stack
 
-- FastAPI
-- Uvicorn
-- aiohttp
-- BeautifulSoup4
-- Jinja2
-- Tailwind CSS (CDN)
+- Backend: FastAPI, Uvicorn
+- Crawling: aiohttp, BeautifulSoup4
+- Templating/UI: Jinja2, Tailwind CSS (CDN)
+- XML generation: Python XML libraries
 
 ## Project Structure
 
@@ -35,21 +85,30 @@ This tool crawls websites and generates clean XML sitemap output with support fo
 |-- crawler.py
 |-- main.py
 |-- requirements.txt
+|-- images/
+|   |-- advanced_filters.png
+|   |-- content_types.png
+|   |-- depth_priorities.png
+|   |-- main_ui.png
+|   |-- platform_detection_modes.png
+|   |-- sitemap_generated.png
+|   `-- url_patterns.png
 |-- templates/
 |   `-- index.html
+|-- LICENSE
 `-- README.md
 ```
 
 ## Quick Start
 
-### 1) Clone
+### 1) Clone repository
 
 ```bash
-git clone https://github.com/<your-username>/sitemap-crawler.git
-cd sitemap-crawler
+git clone https://github.com/umairXtreme/Sitemap-Crawler.git
+cd Sitemap-Crawler
 ```
 
-### 2) Create virtual environment
+### 2) Create and activate virtual environment
 
 ```bash
 python -m venv .venv
@@ -73,59 +132,61 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4) Run app
+### 4) Run server
 
 ```bash
 python main.py
 ```
 
-App URL:
-
-- http://127.0.0.1:8000
+Open: http://127.0.0.1:8000
 
 ## How It Works
 
-1. Submit a target URL and crawl options from the web UI.
-2. A background crawl job is created.
-3. The frontend polls the progress endpoint.
-4. When done, the XML sitemap is available for download.
+1. Enter target website URL.
+2. Choose crawl options (platform, filters, patterns, sitemap behavior).
+3. Start crawl (background job).
+4. Watch real-time progress from `/progress/{job_id}`.
+5. Download final sitemap XML from `/download/{job_id}`.
 
-## Configuration Options
+## Configuration Reference
 
-- `max_urls`: hard cap for discovered URLs
-- `platform`: `auto`, `shopify`, `wordpress`, `generic`
-- `exclude_404`: include only valid pages
-- `respect_robots`: honor `robots.txt` disallow rules
-- `include_pdfs`: include `.pdf` URLs
-- `exclude_patterns`: remove URLs containing custom patterns
-- `include_only_patterns`: keep only matching URL patterns
-- `url_types`: filter by URL category
-- `max_depth`: crawl depth limit (`0` means unlimited)
-- `last_modified`: sitemap lastmod strategy
-- `changefreq`: sitemap change frequency
+| Option | Description |
+|---|---|
+| `max_urls` | Maximum URLs to crawl (1 to 50,000) |
+| `platform` | `auto`, `shopify`, `wordpress`, `generic` |
+| `exclude_404` | Keep only valid pages |
+| `include_pdfs` | Include `.pdf` URLs |
+| `respect_robots` | Respect `robots.txt` disallow paths |
+| `exclude_patterns` | Skip URLs containing custom patterns |
+| `include_only_patterns` | Crawl only URLs that match patterns |
+| `url_types` | Restrict to page/product/collection/blog/tag |
+| `max_depth` | Crawl depth limit (`0` = unlimited) |
+| `last_modified` | Last modified strategy for XML |
+| `changefreq` | Change frequency hint for XML |
 
 ## API Endpoints
 
-- `GET /` - UI page
-- `POST /start-crawl` - create crawl job
-- `GET /progress/{job_id}` - fetch live status
-- `GET /download/{job_id}` - download sitemap XML
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/` | Render UI |
+| `POST` | `/start-crawl` | Start crawl job |
+| `GET` | `/progress/{job_id}` | Fetch live progress |
+| `GET` | `/download/{job_id}` | Download sitemap XML |
 
-## Example Workflow
+## Example Use Cases
 
-1. Open the app in your browser.
-2. Enter target website (for example: `https://example.com`).
-3. Set crawl options.
-4. Start crawl.
-5. Monitor progress.
-6. Download `sitemap.xml`.
+- Generate XML sitemap for a Shopify store quickly.
+- Crawl only product and collection URLs.
+- Exclude account/cart/checkout paths from sitemap output.
+- Enforce depth limits for large websites.
+- Run local SEO audits without third-party tools.
 
-## Notes
+## Performance Notes
 
-- This project is designed for local usage.
-- Large websites can take time depending on network speed and crawl limits.
-- Some sites may block aggressive crawling; adjust settings responsibly.
+- Shopify mode can be significantly faster due to native sitemap parsing.
+- Real crawl time depends on site size, server response speed, and filters.
+- Some sites may rate-limit or block aggressive crawling.
 
 ## License
 
-This project is licensed under the MIT License. See `LICENSE` for details.
+Released under the MIT License. See [LICENSE](LICENSE).
